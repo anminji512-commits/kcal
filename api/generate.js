@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     }
 
     // 표준 Gemini 1.5 Flash 모델 엔드포인트 사용
-    const selectedModel = model || 'gemini-1.5-flash';
+    const selectedModel = model || 'gemini-3.1-flash-lite';
     let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
 
     const payload = {
@@ -50,8 +50,8 @@ export default async function handler(req, res) {
     });
 
     // 만약 해당 모델을 찾을 수 없는 경우 (404) gemini-2.0-flash로 재시도
-    if (response.status === 404) {
-      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+   if (response.status === 404) {
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
       response = await fetch(fallbackUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
