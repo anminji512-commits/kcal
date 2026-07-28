@@ -113,7 +113,7 @@
                         <div id="imagePreviewContainer" class="hidden absolute inset-0 bg-slate-900 flex items-center justify-center">
                             <img id="imagePreview" class="w-full h-full object-contain" alt="급식 사진">
                             <div id="scanningEffect" class="hidden absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent shadow-[0_0_15px_#22c55e] animate-scan"></div>
-                            <button onclick="event.stopPropagation(); clearImage();" class="absolute top-3 right-3 bg-slate-900/70 hover:bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs transition">
+                            <button onclick="event.stopPropagation(); clearImage();" class="absolute top-3 right-3 bg-slate-900/70 hover:bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs transition z-10">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
@@ -169,7 +169,7 @@
 
                     <!-- Action Button -->
                     <button id="btnAnalyze" onclick="analyzeMealImage()" disabled
-                            class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl transition shadow-md shadow-brand-600/20 flex items-center justify-center gap-2">
+                            class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl transition shadow-md shadow-brand-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                         <span id="btnAnalyzeText">AI 급식 영양 분석 시작하기</span>
                     </button>
@@ -259,7 +259,7 @@
                     <!-- Chart View -->
                     <div class="md:col-span-5 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col items-center justify-center">
                         <h4 class="text-xs font-bold text-slate-700 self-start mb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-donut text-brand-600"></i> 3대 영양소 비율
+                            <i class="fa-solid fa-chart-pie text-brand-600"></i> 3대 영양소 비율
                         </h4>
                         <div class="w-40 h-40 relative my-2">
                             <canvas id="macroChart"></canvas>
@@ -362,7 +362,7 @@
 
             </div>
 
-            <!-- ① ~ ⑤ 사용자 의견 게시판 섹션 -->
+            <!-- 사용자 의견 게시판 섹션 -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
@@ -381,7 +381,7 @@
                               class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none resize-none"></textarea>
                     <div class="flex justify-end">
                         <button type="submit" id="btnSubmitFb"
-                                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-emerald-400"></i>
                             <span>의견 등록하기</span>
                         </button>
@@ -399,19 +399,20 @@
         </section>
     </main>
 
+    <!-- Modal Vercel Guide -->
     <div id="modalVercel" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100">
             <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-900 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-triangle-circle-square"></i>
+                        <i class="fa-solid fa-server"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-sm">Vercel 배포 가이드 & API 구조</h3>
                         <p class="text-[11px] text-slate-400">api/generate.js 및 GEMINI_API_KEY 환경변수 적용법</p>
                     </div>
                 </div>
-                <button onclick="closeVercelModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                <button onclick="closeVercelModal()" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -432,7 +433,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-slate-800">1. `api/generate.js` (서버리스 백엔드)</span>
-                        <button onclick="copyCode('codeApiGenerate')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 font-semibold rounded text-[11px] text-slate-700">
+                        <button onclick="copyCode('codeApiGenerate')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 font-semibold rounded text-[11px] text-slate-700 cursor-pointer">
                             <i class="fa-solid fa-copy mr-1"></i> 코드 복사
                         </button>
                     </div>
@@ -451,7 +452,7 @@
 
   try {
     const { contents, generationConfig, systemInstruction } = req.body;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -471,7 +472,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-slate-800">2. `package.json` (프로젝트 설정)</span>
-                        <button onclick="copyCode('codePackageJson')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 font-semibold rounded text-[11px] text-slate-700">
+                        <button onclick="copyCode('codePackageJson')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 font-semibold rounded text-[11px] text-slate-700 cursor-pointer">
                             <i class="fa-solid fa-copy mr-1"></i> 코드 복사
                         </button>
                     </div>
@@ -488,18 +489,19 @@
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
-                <button onclick="closeVercelModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs">
+                <button onclick="closeVercelModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer">
                     닫기
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Modal History -->
     <div id="modalHistory" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100">
             <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> 나의 급식 분석 기록</h3>
-                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white">
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -507,16 +509,16 @@
                 <!-- Dynamic history items -->
             </div>
             <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
-                <button onclick="clearHistory()" class="text-red-500 hover:text-red-700 font-semibold">
+                <button onclick="clearHistory()" class="text-red-500 hover:text-red-700 font-semibold cursor-pointer">
                     <i class="fa-solid fa-trash mr-1"></i> 기록 전체 삭제
                 </button>
-                <button onclick="closeHistoryModal()" class="px-3 py-1.5 bg-slate-200 text-slate-800 font-bold rounded-lg">닫기</button>
+                <button onclick="closeHistoryModal()" class="px-3 py-1.5 bg-slate-200 text-slate-800 font-bold rounded-lg cursor-pointer">닫기</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-2 border border-slate-800">
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-2 border border-slate-800 pointer-events-none">
         <i class="fa-solid fa-circle-check text-brand-500 text-base" id="toastIcon"></i>
         <span id="toastMsg">복사되었습니다.</span>
     </div>
@@ -527,7 +529,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ③ 전달해주신 Firebase 웹 설정값 적용
         const userProvidedFirebaseConfig = {
             apiKey: "AIzaSyBMP669JTG1I7h0VoGWVpbGF8cygFJ3Nls",
             authDomain: "board-1fe06.firebaseapp.com",
@@ -543,7 +544,6 @@
         let db, auth;
         let isFirebaseInitialized = false;
 
-        // ④ 클라이언트 SDK 익명 인증 방식 사용 (서비스 계정 키 미사용)
         async function initFirebase() {
             if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
                 console.warn("Firebase 설정값이 올바르지 않습니다.");
@@ -570,7 +570,6 @@
             }
         }
 
-        // ② 저장된 글 실시간 불러오기 & ⑤ 최신순 정렬
         function subscribeFeedbacks() {
             if (!db) return;
             const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
@@ -581,9 +580,7 @@
                     items.push({ id: doc.id, ...doc.data() });
                 });
 
-                // ⑤ 메모리에서 최신순(내림차순) 정렬
                 items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
                 renderFeedbackList(items);
             }, (error) => {
                 console.error("Firestore onSnapshot error:", error);
@@ -631,7 +628,166 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // 전역 토스트 알림 함수
+        window.submitFeedback = async function(event) {
+            event.preventDefault();
+
+            if (!isFirebaseInitialized || !db) {
+                if (window.showToast) window.showToast("Firebase 연결 준비 중입니다. 잠시 후 다시 시도해주세요.", "fa-circle-exclamation");
+                return;
+            }
+
+            const authorInput = document.getElementById('fbAuthor');
+            const contentInput = document.getElementById('fbContent');
+            const btnSubmit = document.getElementById('btnSubmitFb');
+
+            const author = authorInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!author || !content) {
+                if (window.showToast) window.showToast("작성자와 내용을 모두 입력해주세요.", "fa-circle-exclamation");
+                return;
+            }
+
+            try {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "등록 중...";
+
+                const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
+                await addDoc(publicColRef, {
+                    author,
+                    content,
+                    createdAt: Date.now()
+                });
+
+                authorInput.value = '';
+                contentInput.value = '';
+                if (window.showToast) window.showToast("의견이 성공적으로 등록되었습니다!");
+            } catch (err) {
+                console.error("Firestore addDoc error:", err);
+                if (window.showToast) window.showToast("의견 등록 실패: " + err.message, "fa-triangle-exclamation");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-emerald-400"></i> <span>의견 등록하기</span>`;
+            }
+        };
+
+        initFirebase();
+    </script>
+
+    <script>
+        let currentImageBase64 = null;
+        let currentPresetKey = null;
+        let activeTab = 'upload';
+        let macroChartInstance = null;
+
+        // Sample Presets Data
+        const SAMPLE_PRESETS = {
+            korean_tray: {
+                title: "현미밥 & 제육볶음 급식 세트",
+                category_tag: "한식 급식",
+                total_calories: 680,
+                health_score: 88,
+                macros: {
+                    carbs: { grams: 92, percentage: 55 },
+                    protein: { grams: 34, percentage: 25 },
+                    fat: { grams: 18, percentage: 20 },
+                    sodium_mg: 820,
+                    sugar_g: 12
+                },
+                items: [
+                    { name: "발아현미밥", portion: "1공기 (210g)", calories: 300, carbs: 65, protein: 6, fat: 2 },
+                    { name: "돼지고기 제육볶음", portion: "1접시 (120g)", calories: 240, carbs: 8, protein: 20, fat: 12 },
+                    { name: "소고기 미역국", portion: "1대접 (200g)", calories: 65, carbs: 4, protein: 5, fat: 3 },
+                    { name: "야채 계란말이", portion: "2조각 (60g)", calories: 75, carbs: 2, protein: 5, fat: 5 },
+                    { name: "배추김치", portion: "1종지 (40g)", calories: 15, carbs: 3, protein: 1, fat: 0 }
+                ],
+                dietitian_advice: "단백질과 채소의 비율이 매우 훌륭한 학교 급식입니다. 국물의 나트륨 섭취를 줄이기 위해 국물은 가급적 남기시고 건더기 위주로 드시는 것을 권장합니다.",
+                warnings: ["나트륨 주의", "우수한 단백질"]
+            },
+            salad: {
+                title: "훈제 닭가슴살 샐러드 & 아보카도",
+                category_tag: "클린 식단",
+                total_calories: 420,
+                health_score: 95,
+                macros: {
+                    carbs: { grams: 28, percentage: 25 },
+                    protein: { grams: 38, percentage: 45 },
+                    fat: { grams: 14, percentage: 30 },
+                    sodium_mg: 410,
+                    sugar_g: 6
+                },
+                items: [
+                    { name: "훈제 닭가슴살", portion: "150g", calories: 190, carbs: 1, protein: 34, fat: 3 },
+                    { name: "아보카도 슬라이스", portion: "1/2개 (60g)", calories: 100, carbs: 5, protein: 1, fat: 9 },
+                    { name: "혼합 샐러드 채소", portion: "100g", calories: 25, carbs: 5, protein: 2, fat: 0 },
+                    { name: "삶은 계란", portion: "1개 (50g)", calories: 75, carbs: 1, protein: 6, fat: 5 },
+                    { name: "발사믹 드레싱", portion: "1.5스푼", calories: 30, carbs: 6, protein: 0, fat: 1 }
+                ],
+                dietitian_advice: "칼로리가 낮고 식이섬유와 고단백질이 조화를 이룬 최고 품질의 체중 조절용 급식입니다.",
+                warnings: ["저칼로리", "고단백", "저나트륨"]
+            },
+            chinese: {
+                title: "중식 데이 - 짜장밥 & 탕수육",
+                category_tag: "중식 급식",
+                total_calories: 890,
+                health_score: 65,
+                macros: {
+                    carbs: { grams: 125, percentage: 60 },
+                    protein: { grams: 26, percentage: 15 },
+                    fat: { grams: 32, percentage: 25 },
+                    sodium_mg: 1250,
+                    sugar_g: 22
+                },
+                items: [
+                    { name: "짜장밥", portion: "1대접 (350g)", calories: 540, carbs: 90, protein: 12, fat: 14 },
+                    { name: "찹쌀 탕수육", portion: "1접시 (100g)", calories: 260, carbs: 24, protein: 10, fat: 15 },
+                    { name: "얼큰 짬뽕국", portion: "1대접 (200g)", calories: 80, carbs: 8, protein: 4, fat: 3 },
+                    { name: "단무지", portion: "3개", calories: 10, carbs: 3, protein: 0, fat: 0 }
+                ],
+                dietitian_advice: "탄수화물과 당류 비율이 비교적 높습니다. 식사 후 가벼운 산책이나 운동을 권장하며, 다음 한 끼는 정갈한 채소 중심 식단이 좋습니다.",
+                warnings: ["고칼로리 주의", "나트륨 과다", "당류 주의"]
+            },
+            snack: {
+                title: "분식 데이 - 떡볶이 & 튀김 세트",
+                category_tag: "분식 특식",
+                total_calories: 740,
+                health_score: 70,
+                macros: {
+                    carbs: { grams: 110, percentage: 65 },
+                    protein: { grams: 18, percentage: 12 },
+                    fat: { grams: 24, percentage: 23 },
+                    sodium_mg: 1100,
+                    sugar_g: 28
+                },
+                items: [
+                    { name: "쌀떡볶이", portion: "1접시 (200g)", calories: 380, carbs: 75, protein: 6, fat: 6 },
+                    { name: "바삭 김말이 튀김", portion: "2개 (60g)", calories: 160, carbs: 18, protein: 2, fat: 9 },
+                    { name: "꼬치 어묵탕", portion: "1대접 (180g)", calories: 120, carbs: 10, protein: 8, fat: 5 },
+                    { name: "삼각 주먹밥", portion: "1개 (90g)", calories: 80, carbs: 17, protein: 2, fat: 1 }
+                ],
+                dietitian_advice: "학생들이 좋아하는 맛있는 특식이나 당류와 나트륨 함량이 높으므로 자주 섭취하기보다는 별미로 즐기시길 권장합니다.",
+                warnings: ["당류 높음", "단백질 보충 필요"]
+            }
+        };
+
+        // Window Modal Controller Functions
+        window.openVercelModal = function() {
+            document.getElementById('modalVercel').classList.remove('hidden');
+        };
+
+        window.closeVercelModal = function() {
+            document.getElementById('modalVercel').classList.add('hidden');
+        };
+
+        window.openHistoryModal = function() {
+            renderHistoryList();
+            document.getElementById('modalHistory').classList.remove('hidden');
+        };
+
+        window.closeHistoryModal = function() {
+            document.getElementById('modalHistory').classList.add('hidden');
+        };
+
         window.showToast = function(message, iconClass = 'fa-circle-check') {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
@@ -649,54 +805,349 @@
             }, 3000);
         };
 
-        // ① 등록 버튼 클릭 시 Firestore 저장
-        window.submitFeedback = async function(event) {
-            event.preventDefault();
+        window.copyCode = function(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const text = el.innerText;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                window.showToast("코드가 클립보드에 복사되었습니다!");
+            } catch (err) {
+                window.showToast("복사에 실패했습니다.", "fa-triangle-exclamation");
+            }
+            document.body.removeChild(textArea);
+        };
 
-            if (!isFirebaseInitialized || !db) {
-                window.showToast("Firebase 연결 준비 중입니다. 잠시 후 다시 시도해주세요.", "fa-circle-exclamation");
+        window.switchInputTab = function(tab) {
+            activeTab = tab;
+            const btnUpload = document.getElementById('btnTabUpload');
+            const btnPreset = document.getElementById('btnTabPreset');
+            const viewUpload = document.getElementById('viewUpload');
+            const viewPreset = document.getElementById('viewPreset');
+
+            if (tab === 'upload') {
+                btnUpload.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 text-center transition";
+                btnPreset.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 text-center transition";
+                viewUpload.classList.remove('hidden');
+                viewPreset.classList.add('hidden');
+                updateAnalyzeButtonState();
+            } else {
+                btnPreset.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 text-center transition";
+                btnUpload.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 text-center transition";
+                viewPreset.classList.remove('hidden');
+                viewUpload.classList.add('hidden');
+                if (!currentPresetKey) selectPreset('korean_tray');
+                updateAnalyzeButtonState();
+            }
+        };
+
+        window.triggerCamera = function() {
+            const input = document.getElementById('fileInput');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        };
+
+        window.handleFileSelect = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                window.showToast("파일 크기는 10MB 이하만 가능합니다.", "fa-circle-exclamation");
                 return;
             }
 
-            const authorInput = document.getElementById('fbAuthor');
-            const contentInput = document.getElementById('fbContent');
-            const btnSubmit = document.getElementById('btnSubmitFb');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImageBase64 = e.target.result;
+                currentPresetKey = null;
+                document.getElementById('imagePreview').src = currentImageBase64;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                document.getElementById('uploadPrompt').classList.add('hidden');
+                updateAnalyzeButtonState();
+            };
+            reader.readAsDataURL(file);
+        };
 
-            const author = authorInput.value.trim();
-            const content = contentInput.value.trim();
+        window.clearImage = function() {
+            currentImageBase64 = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('uploadPrompt').classList.remove('hidden');
+            updateAnalyzeButtonState();
+        };
 
-            if (!author || !content) {
-                window.showToast("작성자와 내용을 모두 입력해주세요.", "fa-circle-exclamation");
+        window.selectPreset = function(presetKey) {
+            currentPresetKey = presetKey;
+            document.querySelectorAll('.preset-card').forEach(card => {
+                card.classList.remove('border-brand-500', 'bg-brand-50/20');
+            });
+            event.currentTarget?.classList?.add('border-brand-500', 'bg-brand-50/20');
+            updateAnalyzeButtonState();
+        };
+
+        function updateAnalyzeButtonState() {
+            const btn = document.getElementById('btnAnalyze');
+            if (activeTab === 'upload' && currentImageBase64) {
+                btn.disabled = false;
+            } else if (activeTab === 'preset' && currentPresetKey) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        function cleanAndParseJson(text) {
+            if (!text) throw new Error("응답 결과가 비어 있습니다.");
+            let cleaned = text.trim();
+            if (cleaned.startsWith('```')) {
+                cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+            }
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+            return JSON.parse(cleaned);
+        }
+
+        window.analyzeMealImage = async function() {
+            const stateEmpty = document.getElementById('stateEmpty');
+            const stateLoading = document.getElementById('stateLoading');
+            const stateResults = document.getElementById('stateResults');
+            const progressStep = document.getElementById('loadingProgressStep');
+            const progressBar = document.getElementById('loadingProgressBar');
+
+            stateEmpty.classList.add('hidden');
+            stateResults.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+
+            progressBar.style.width = '25%';
+            progressStep.innerText = "이미지 데이터를 준비하는 중...";
+
+            if (activeTab === 'preset' && currentPresetKey && SAMPLE_PRESETS[currentPresetKey]) {
+                setTimeout(() => {
+                    progressBar.style.width = '70%';
+                    progressStep.innerText = "영양 성분 데이터 계산 중...";
+                }, 400);
+
+                setTimeout(() => {
+                    progressBar.style.width = '100%';
+                    const data = SAMPLE_PRESETS[currentPresetKey];
+                    displayAnalysisResult(data);
+                    saveToHistory(data);
+                    stateLoading.classList.add('hidden');
+                    stateResults.classList.remove('hidden');
+                }, 800);
                 return;
             }
 
             try {
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = "등록 중...";
+                progressBar.style.width = '45%';
+                progressStep.innerText = "Gemini AI 모델 분석 진행 중 (/api/generate)...";
 
-                const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
-                await addDoc(publicColRef, {
-                    author,
-                    content,
-                    createdAt: Date.now()
+                const base64Data = currentImageBase64.split(',')[1];
+                const mimeType = currentImageBase64.split(';')[0].split(':')[1] || "image/jpeg";
+
+                const promptText = `당신은 대표 학교 급식 전문 AI 영양사입니다. 
+제공된 급식 사진을 분석하여 다음 JSON 양식에 맞춰 정확한 숫자로 답하세요:
+{
+  "title": "대표 식단 이름",
+  "category_tag": "한식 급식/중식 급식/샐러드/특식 등",
+  "total_calories": 칼로리숫자,
+  "health_score": 1부터100사이_영양점수,
+  "macros": {
+    "carbs": { "grams": 탄수화물g, "percentage": 비율% },
+    "protein": { "grams": 단백질g, "percentage": 비율% },
+    "fat": { "grams": 지방g, "percentage": 비율% },
+    "sodium_mg": 나트륨mg,
+    "sugar_g": 당류g
+  },
+  "items": [
+    { "name": "메뉴명", "portion": "추정량", "calories": 칼로리, "carbs": g, "protein": g, "fat": g }
+  ],
+  "dietitian_advice": "한 줄 맞춤 영양 조언",
+  "warnings": ["특이사항 태그1", "태그2"]
+}`;
+
+                const requestBody = {
+                    contents: [{
+                        parts: [
+                            { text: promptText },
+                            { inline_data: { mime_type: mimeType, data: base64Data } }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        response_mime_type: "application/json"
+                    }
+                };
+
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
                 });
 
-                authorInput.value = '';
-                contentInput.value = '';
-                window.showToast("의견이 성공적으로 등록되었습니다!");
-            } catch (err) {
-                console.error("Firestore addDoc error:", err);
-                window.showToast("의견 등록 실패: " + err.message, "fa-triangle-exclamation");
-            } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-emerald-400"></i> <span>의견 등록하기</span>`;
+                progressBar.style.width = '85%';
+                progressStep.innerText = "응답 결과 파싱 중...";
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || `서버 응답 에러 (${response.status})`);
+                }
+
+                const resultData = await response.json();
+                const aiText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!aiText) throw new Error("AI 분석 결과를 받아오지 못했습니다.");
+
+                const parsedResult = cleanAndParseJson(aiText);
+                
+                progressBar.style.width = '100%';
+                displayAnalysisResult(parsedResult);
+                saveToHistory(parsedResult);
+
+                stateLoading.classList.add('hidden');
+                stateResults.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Analysis Error:", error);
+                stateLoading.classList.add('hidden');
+                stateEmpty.classList.remove('hidden');
+                window.showToast("분석 중 오류 발생: " + error.message, "fa-triangle-exclamation");
             }
         };
 
-        // 앱 로드 시 Firebase 초기화
-        initFirebase();
-    </script>
+        function displayAnalysisResult(data) {
+            document.getElementById('resMealTag').innerText = data.category_tag || "급식 분석";
+            document.getElementById('resMealTitle').innerText = data.title || "분석된 급식 식단";
+            document.getElementById('resAnalyzedTime').innerText = "방금 분석됨";
+            document.getElementById('resHealthScore').innerHTML = `${data.health_score || 85}<span class="text-xs font-normal text-slate-300">점</span>`;
+            document.getElementById('resTotalCalories').innerHTML = `${data.total_calories || 650} <span class="text-xs font-normal text-slate-300">kcal</span>`;
 
-    <script>
-        let currentImageBase64 = null;
-<!-- ... existing code -->
+            const targetCategory = document.getElementById('userCategory').value;
+            let targetKcal = 750;
+            if (targetCategory === 'adult_m') targetKcal = 800;
+            if (targetCategory === 'adult_w') targetKcal = 650;
+            if (targetCategory === 'diet') targetKcal = 500;
+
+            const percentage = Math.round(((data.total_calories || 650) / targetKcal) * 100);
+            document.getElementById('resCaloriePercentage').innerText = `${percentage}% 도달`;
+
+            const macros = data.macros || { carbs: { grams: 80, percentage: 50 }, protein: { grams: 30, percentage: 30 }, fat: { grams: 15, percentage: 20 } };
+            document.getElementById('lblCarbsRatio').innerText = `${macros.carbs.percentage}%`;
+            document.getElementById('lblProteinRatio').innerText = `${macros.protein.percentage}%`;
+            document.getElementById('lblFatRatio').innerText = `${macros.fat.percentage}%`;
+
+            document.getElementById('resCarbsGrams').innerText = `${macros.carbs.grams}g`;
+            document.getElementById('resProteinGrams').innerText = `${macros.protein.grams}g`;
+            document.getElementById('resFatGrams').innerText = `${macros.fat.grams}g`;
+
+            document.getElementById('barCarbs').style.width = `${Math.min(macros.carbs.percentage, 100)}%`;
+            document.getElementById('barProtein').style.width = `${Math.min(macros.protein.percentage, 100)}%`;
+            document.getElementById('barFat').style.width = `${Math.min(macros.fat.percentage, 100)}%`;
+
+            document.getElementById('resSodiumMg').innerText = `${macros.sodium_mg || 750} mg`;
+            document.getElementById('resSugarGrams').innerText = `${macros.sugar_g || 10} g`;
+
+            const tableBody = document.getElementById('resItemsTable');
+            tableBody.innerHTML = (data.items || []).map(item => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+                    <td class="py-2.5 px-3 text-slate-500 text-[11px]">${escapeHtml(item.portion || '-')}</td>
+                    <td class="py-2.5 px-3 text-right font-bold text-slate-800">${item.calories} kcal</td>
+                    <td class="py-2.5 px-3 text-right text-slate-500 text-[11px]">${item.carbs}g / ${item.protein}g / ${item.fat}g</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('resDietitianAdvice').innerText = data.dietitian_advice || "균형 잡힌 식단입니다.";
+
+            const warningsContainer = document.getElementById('resWarningsContainer');
+            warningsContainer.innerHTML = (data.warnings || []).map(w => `
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">${escapeHtml(w)}</span>
+            `).join('');
+
+            renderMacroChart(macros.carbs.percentage, macros.protein.percentage, macros.fat.percentage);
+        }
+
+        function renderMacroChart(carbsP, proteinP, fatP) {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            if (macroChartInstance) macroChartInstance.destroy();
+
+            macroChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['탄수화물', '단백질', '지방'],
+                    datasets: [{
+                        data: [carbsP, proteinP, fatP],
+                        backgroundColor: ['#0284c7', '#10b981', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function saveToHistory(data) {
+            let history = JSON.parse(localStorage.getItem('nutri_ai_history') || '[]');
+            history.unshift({
+                id: Date.now(),
+                date: new Date().toLocaleString('ko-KR'),
+                title: data.title,
+                calories: data.total_calories,
+                score: data.health_score
+            });
+            if (history.length > 20) history = history.slice(0, 20);
+            localStorage.setItem('nutri_ai_history', JSON.stringify(history));
+        }
+
+        function renderHistoryList() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('nutri_ai_history') || '[]');
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<p class="text-center text-slate-400 py-8">저장된 기록이 없습니다.</p>`;
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="py-2.5 flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-800">${escapeHtml(item.title)}</p>
+                        <p class="text-[10px] text-slate-400">${item.date}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-emerald-600 text-sm">${item.calories} kcal</p>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">점수: ${item.score}점</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.clearHistory = function() {
+            localStorage.removeItem('nutri_ai_history');
+            renderHistoryList();
+            window.showToast("분석 기록이 모두 삭제되었습니다.");
+        };
+
+        function escapeHtml(text) {
+            return String(text || '')
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
