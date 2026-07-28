@@ -630,12 +630,30 @@
                 .replace(/'/g, "&#039;");
         }
 
+        // 전역 토스트 알림 함수
+        window.showToast = function(message, iconClass = 'fa-circle-check') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            if (!toast) return;
+            if (toastMsg) toastMsg.textContent = message;
+            if (toastIcon) toastIcon.className = `fa-solid ${iconClass} text-brand-500 text-base`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        };
+
         // ① 글 작성 후 등록
         window.submitFeedback = async function(event) {
             event.preventDefault();
 
             if (!isFirebaseInitialized || !db) {
-                showToast("Firebase 설정이 올바르지 않아 게시글을 저장할 수 없습니다.");
+                window.showToast("Firebase 설정이 올바르지 않아 게시글을 저장할 수 없습니다.", "fa-circle-exclamation");
                 return;
             }
 
@@ -647,7 +665,7 @@
             const content = contentInput.value.trim();
 
             if (!author || !content) {
-                showToast("작성자와 내용을 모두 입력해주세요.");
+                window.showToast("작성자와 내용을 모두 입력해주세요.", "fa-circle-exclamation");
                 return;
             }
 
@@ -664,10 +682,10 @@
 
                 authorInput.value = '';
                 contentInput.value = '';
-                showToast("의견이 성공적으로 등록되었습니다!");
+                window.showToast("의견이 성공적으로 등록되었습니다!");
             } catch (err) {
                 console.error("Firestore addDoc error:", err);
-                showToast("의견 등록 실패: " + err.message);
+                window.showToast("의견 등록 실패: " + err.message, "fa-triangle-exclamation");
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-emerald-400"></i> <span>의견 등록하기</span>`;
