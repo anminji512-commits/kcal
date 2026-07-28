@@ -527,26 +527,27 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ③ 발급받으신 Firebase 웹 설정값(firebaseConfig)을 아래 객체에 붙여넣어 주세요.
-        const defaultFirebaseConfig = {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
+        // ③ 전달해주신 Firebase 웹 설정값 적용
+        const userProvidedFirebaseConfig = {
+            apiKey: "AIzaSyBMP669JTG1I7h0VoGWVpbGF8cygFJ3Nls",
+            authDomain: "board-1fe06.firebaseapp.com",
+            projectId: "board-1fe06",
+            storageBucket: "board-1fe06.firebasestorage.app",
+            messagingSenderId: "760277287515",
+            appId: "1:760277287515:web:7ca93a0b7d13a11faf357e"
         };
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
+        const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config) ? JSON.parse(__firebase_config) : userProvidedFirebaseConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'nutri-ai-app';
 
         let db, auth;
         let isFirebaseInitialized = false;
 
+        // ④ 클라이언트 SDK 익명 인증 방식 사용 (서비스 계정 키 미사용)
         async function initFirebase() {
-            if (!firebaseConfig.projectId && !firebaseConfig.apiKey) {
-                console.warn("Firebase 설정값(firebaseConfig)이 필요합니다.");
-                renderFeedbackError("Firebase 설정값이 입력되지 않았습니다. firebaseConfig를 추가해주세요.");
+            if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
+                console.warn("Firebase 설정값이 올바르지 않습니다.");
+                renderFeedbackError("Firebase 설정값을 확인해 주세요.");
                 return;
             }
 
@@ -565,11 +566,11 @@
                 subscribeFeedbacks();
             } catch (err) {
                 console.error("Firebase Auth/Init Error:", err);
-                renderFeedbackError("Firebase 연동 중 오류가 발생했습니다.");
+                renderFeedbackError("Firebase 연결 중 오류가 발생했습니다: " + err.message);
             }
         }
 
-        // ② Firestore 목록 불러오기 & ⑤ 최신순 정렬
+        // ② 저장된 글 실시간 불러오기 & ⑤ 최신순 정렬
         function subscribeFeedbacks() {
             if (!db) return;
             const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
@@ -580,7 +581,7 @@
                     items.push({ id: doc.id, ...doc.data() });
                 });
 
-                // ⑤ 클라이언트 메모리에서 최신순 정렬
+                // ⑤ 메모리에서 최신순(내림차순) 정렬
                 items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
                 renderFeedbackList(items);
@@ -648,12 +649,12 @@
             }, 3000);
         };
 
-        // ① 글 작성 후 등록
+        // ① 등록 버튼 클릭 시 Firestore 저장
         window.submitFeedback = async function(event) {
             event.preventDefault();
 
             if (!isFirebaseInitialized || !db) {
-                window.showToast("Firebase 설정이 올바르지 않아 게시글을 저장할 수 없습니다.", "fa-circle-exclamation");
+                window.showToast("Firebase 연결 준비 중입니다. 잠시 후 다시 시도해주세요.", "fa-circle-exclamation");
                 return;
             }
 
@@ -698,5 +699,4 @@
 
     <script>
         let currentImageBase64 = null;
-        let currentImageMimeType = "image/jpeg";
 <!-- ... existing code -->
