@@ -362,6 +362,40 @@
 
             </div>
 
+            <!-- ① ~ ⑤ 사용자 의견 게시판 섹션 -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-brand-600"></i> 사용자 의견 게시판
+                    </h3>
+                    <span class="text-xs text-slate-400" id="feedbackCount">총 0개</span>
+                </div>
+
+                <!-- 의견 작성 폼 -->
+                <form id="feedbackForm" onsubmit="submitFeedback(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" id="fbAuthor" placeholder="작성자 이름 (닉네임)" required
+                               class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                    <textarea id="fbContent" rows="3" placeholder="앱 사용 후기나 개선 의견을 남겨주세요." required
+                              class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none resize-none"></textarea>
+                    <div class="flex justify-end">
+                        <button type="submit" id="btnSubmitFb"
+                                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane text-emerald-400"></i>
+                            <span>의견 등록하기</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 의견 목록 (최신순) -->
+                <div id="feedbackList" class="space-y-2.5 pt-2 max-h-80 overflow-y-auto">
+                    <div class="text-center py-6 text-slate-400 text-xs">
+                        의견을 불러오는 중입니다...
+                    </div>
+                </div>
+            </div>
+
         </section>
     </main>
 
@@ -487,298 +521,164 @@
         <span id="toastMsg">복사되었습니다.</span>
     </div>
 
+    <!-- Firebase SDK Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ③ 발급받으신 Firebase 웹 설정값(firebaseConfig)을 아래 객체에 붙여넣어 주세요.
+        const defaultFirebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nutri-ai-app';
+
+        let db, auth;
+        let isFirebaseInitialized = false;
+
+        async function initFirebase() {
+            if (!firebaseConfig.projectId && !firebaseConfig.apiKey) {
+                console.warn("Firebase 설정값(firebaseConfig)이 필요합니다.");
+                renderFeedbackError("Firebase 설정값이 입력되지 않았습니다. firebaseConfig를 추가해주세요.");
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                isFirebaseInitialized = true;
+                subscribeFeedbacks();
+            } catch (err) {
+                console.error("Firebase Auth/Init Error:", err);
+                renderFeedbackError("Firebase 연동 중 오류가 발생했습니다.");
+            }
+        }
+
+        // ② Firestore 목록 불러오기 & ⑤ 최신순 정렬
+        function subscribeFeedbacks() {
+            if (!db) return;
+            const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
+
+            onSnapshot(publicColRef, (snapshot) => {
+                const items = [];
+                snapshot.forEach((doc) => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+
+                // ⑤ 클라이언트 메모리에서 최신순 정렬
+                items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                renderFeedbackList(items);
+            }, (error) => {
+                console.error("Firestore onSnapshot error:", error);
+                renderFeedbackError("의견 목록을 불러오지 못했습니다.");
+            });
+        }
+
+        function renderFeedbackList(items) {
+            const listEl = document.getElementById('feedbackList');
+            const countEl = document.getElementById('feedbackCount');
+            if (countEl) countEl.innerText = `총 ${items.length}개`;
+
+            if (items.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">등록된 의견이 없습니다. 첫 의견을 남겨주세요!</div>`;
+                return;
+            }
+
+            listEl.innerHTML = items.map(item => {
+                const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('ko-KR') : '';
+                return `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1">
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span class="font-bold text-slate-800"><i class="fa-solid fa-user-circle mr-1 text-brand-600"></i>${escapeHtml(item.author || '익명')}</span>
+                            <span class="text-[10px]">${dateStr}</span>
+                        </div>
+                        <p class="text-slate-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content || '')}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFeedbackError(msg) {
+            const listEl = document.getElementById('feedbackList');
+            if (listEl) {
+                listEl.innerHTML = `<div class="text-center py-6 text-red-400 text-xs">${msg}</div>`;
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // ① 글 작성 후 등록
+        window.submitFeedback = async function(event) {
+            event.preventDefault();
+
+            if (!isFirebaseInitialized || !db) {
+                showToast("Firebase 설정이 올바르지 않아 게시글을 저장할 수 없습니다.");
+                return;
+            }
+
+            const authorInput = document.getElementById('fbAuthor');
+            const contentInput = document.getElementById('fbContent');
+            const btnSubmit = document.getElementById('btnSubmitFb');
+
+            const author = authorInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!author || !content) {
+                showToast("작성자와 내용을 모두 입력해주세요.");
+                return;
+            }
+
+            try {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "등록 중...";
+
+                const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
+                await addDoc(publicColRef, {
+                    author,
+                    content,
+                    createdAt: Date.now()
+                });
+
+                authorInput.value = '';
+                contentInput.value = '';
+                showToast("의견이 성공적으로 등록되었습니다!");
+            } catch (err) {
+                console.error("Firestore addDoc error:", err);
+                showToast("의견 등록 실패: " + err.message);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-emerald-400"></i> <span>의견 등록하기</span>`;
+            }
+        };
+
+        // 앱 로드 시 Firebase 초기화
+        initFirebase();
+    </script>
+
     <script>
         let currentImageBase64 = null;
         let currentImageMimeType = "image/jpeg";
-        let macroChartInstance = null;
-        let historyData = [];
-
-        const SAMPLE_PRESETS = {
-            korean_tray: {
-                title: "현미밥 & 제육볶음 학교 급식",
-                healthScore: 88,
-                totalCalories: 710,
-                carbsGrams: 94,
-                proteinGrams: 36,
-                fatGrams: 20,
-                sodiumMg: 840,
-                sugarGrams: 10,
-                items: [
-                    { name: "현미밥", portion: "1공기 (200g)", calories: 300, carbs: 65, protein: 6, fat: 2 },
-                    { name: "소고기 미역국", portion: "1대접 (180g)", calories: 80, carbs: 3, protein: 7, fat: 4 },
-                    { name: "제육볶음", portion: "1접시 (120g)", calories: 220, carbs: 8, protein: 18, fat: 12 },
-                    { name: "계란말이", portion: "2조각 (60g)", calories: 80, carbs: 2, protein: 5, fat: 5 },
-                    { name: "배추김치", portion: "1소접시 (40g)", calories: 30, carbs: 16, protein: 0, fat: 0 }
-                ],
-                dietitianAdvice: "단백질과 탄수화물의 균형이 우수한 대표적인 고등학교 급식입니다. 국물의 나트륨 함량이 다소 높으니 건더기 위주로 드시는 것을 권장합니다.",
-                warnings: ["나트륨 주의", "우수 식단"]
-            },
-            salad: {
-                title: "닭가슴살 아보카도 샐러드",
-                healthScore: 95,
-                totalCalories: 450,
-                carbsGrams: 25,
-                proteinGrams: 42,
-                fatGrams: 18,
-                sodiumMg: 380,
-                sugarGrams: 6,
-                items: [
-                    { name: "훈제 닭가슴살", portion: "150g", calories: 210, carbs: 0, protein: 35, fat: 3 },
-                    { name: "아보카도 슬라이스", portion: "1/2개 (80g)", calories: 130, carbs: 6, protein: 2, fat: 12 },
-                    { name: "믹스 그린 채소", portion: "100g", calories: 30, carbs: 5, protein: 2, fat: 0 },
-                    { name: "발사믹 드레싱", portion: "20g", calories: 80, carbs: 14, protein: 0, fat: 3 }
-                ],
-                dietitianAdvice: "체중 조절 및 근육 합성에 최적화된 고단백 저탄수화물 식단입니다. 건강한 지방인 아보카도까지 고루 갖춰져 있습니다.",
-                warnings: ["고단백", "저나트륨"]
-            },
-            chinese: {
-                title: "특식 짜장밥 & 탕수육 세트",
-                healthScore: 68,
-                totalCalories: 920,
-                carbsGrams: 125,
-                proteinGrams: 28,
-                fatGrams: 34,
-                sodiumMg: 1250,
-                sugarGrams: 22,
-                items: [
-                    { name: "짜장밥", portion: "1인분 (350g)", calories: 580, carbs: 95, protein: 14, fat: 16 },
-                    { name: "찹쌀 탕수육", portion: "5조각 (100g)", calories: 260, carbs: 22, protein: 10, fat: 15 },
-                    { name: "짬뽕 국물", portion: "1컵 (150g)", calories: 80, carbs: 8, protein: 4, fat: 3 }
-                ],
-                dietitianAdvice: "칼로리와 탄수화물, 나트륨 비율이 상대적으로 높은 특식 메뉴입니다. 식사 후 가벼운 산책을 추천하며 수분 섭취를 늘려주세요.",
-                warnings: ["고칼로리 주의", "나트륨 높음"]
-            },
-            snack: {
-                title: "분식 데이 떡볶이 & 튀김",
-                healthScore: 62,
-                totalCalories: 840,
-                carbsGrams: 130,
-                proteinGrams: 22,
-                fatGrams: 28,
-                sodiumMg: 1420,
-                sugarGrams: 28,
-                items: [
-                    { name: "쌀 떡볶이", portion: "1인분 (200g)", calories: 420, carbs: 82, protein: 8, fat: 6 },
-                    { name: "모둠 튀김", portion: "3개 (90g)", calories: 280, carbs: 28, protein: 6, fat: 18 },
-                    { name: "어묵탕", portion: "1대접", calories: 140, carbs: 20, protein: 8, fat: 4 }
-                ],
-                dietitianAdvice: "나트륨과 당류 함량이 높으므로 일주일에 1회 이하로 즐기는 것이 좋습니다.",
-                warnings: ["나트륨 고위험", "정제탄수화물 주의"]
-            }
-        };
-
-        window.onload = function() {
-            loadHistoryFromStorage();
-            setupDragAndDrop();
-        };
-
-        function switchInputTab(tab) {
-            const btnUpload = document.getElementById('btnTabUpload');
-            const btnPreset = document.getElementById('btnTabPreset');
-            const viewUpload = document.getElementById('viewUpload');
-            const viewPreset = document.getElementById('viewPreset');
-
-            if (tab === 'upload') {
-                btnUpload.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 text-center transition font-semibold";
-                btnPreset.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 text-center transition font-semibold";
-                viewUpload.classList.remove('hidden');
-                viewPreset.classList.add('hidden');
-            } else {
-                btnPreset.className = "py-2 rounded-lg bg-white shadow-sm text-slate-800 text-center transition font-semibold";
-                btnUpload.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 text-center transition font-semibold";
-                viewPreset.classList.remove('hidden');
-                viewUpload.classList.add('hidden');
-            }
-        }
-
-        function setupDragAndDrop() {
-            const dropzone = document.getElementById('dropzone');
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropzone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.add('border-brand-500', 'bg-brand-50/50');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropzone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.remove('border-brand-500', 'bg-brand-50/50');
-                }, false);
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                if (files && files.length > 0) processFile(files[0]);
-            });
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) processFile(file);
-        }
-
-        function triggerCamera() {
-            const input = document.getElementById('fileInput');
-            input.setAttribute('capture', 'environment');
-            input.click();
-        }
-
-        function processFile(file) {
-            if (!file.type.startsWith('image/')) {
-                showToast('이미지 파일만 업로드할 수 있습니다.');
-                return;
-            }
-
-            currentImageMimeType = file.type;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const result = e.target.result;
-                currentImageBase64 = result.split(',')[1];
-                
-                document.getElementById('imagePreview').src = result;
-                document.getElementById('uploadPrompt').classList.add('hidden');
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                
-                const btn = document.getElementById('btnAnalyze');
-                btn.disabled = false;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function clearImage() {
-            currentImageBase64 = null;
-            document.getElementById('fileInput').value = '';
-            document.getElementById('uploadPrompt').classList.remove('hidden');
-            document.getElementById('imagePreviewContainer').classList.add('hidden');
-            document.getElementById('btnAnalyze').disabled = true;
-        }
-
-        function selectPreset(presetKey) {
-            const data = SAMPLE_PRESETS[presetKey];
-            if (!data) return;
-            renderAnalysisResult(data);
-            showToast(`${data.title} 샘플 식단이 선택되었습니다.`);
-        }
-
-        // 마크다운 백틱 및 불필요한 공백을 제거하고 안전하게 JSON을 파싱하는 헬퍼 함수
-        function cleanAndParseJson(text) {
-            if (!text) return null;
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                try {
-                    return JSON.parse(cleaned);
-                } catch (e2) {
-                    const jsonMatch = text.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        try {
-                            return JSON.parse(jsonMatch[0]);
-                        } catch (e3) {
-                            console.error("JSON extraction error:", e3);
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        async function analyzeMealImage() {
-            if (!currentImageBase64) {
-                showToast('분석할 사진을 업로드 해주세요.');
-                return;
-            }
-
-            setViewState('loading');
-            document.getElementById('scanningEffect').classList.remove('hidden');
-
-            const systemPrompt = `당신은 대한민국 학교 급식 및 임상 영양사 AI 분석 전문가입니다.
-전달받은 급식 사진을 분석하여 다음 JSON 스키마 형식으로만 응답해주세요:
-{
-  "mealTitle": "식단 명칭 (예: 현미밥 & 제육볶음 급식)",
-  "healthScore": 0부터 100 사이의 영양 균형 점수 (숫자),
-  "totalCalories": 총 칼로리 kcal (숫자),
-  "carbsGrams": 탄수화물 g (숫자),
-  "proteinGrams": 단백질 g (숫자),
-  "fatGrams": 지방 g (숫자),
-  "sodiumMg": 나트륨 mg (숫자),
-  "sugarGrams": 당류 g (숫자),
-  "items": [
-     { "name": "메뉴명", "portion": "제공량 추정", "calories": 0, "carbs": 0, "protein": 0, "fat": 0 }
-  ],
-  "dietitianAdvice": "영양사의 정성스러운 한줄 조언 (한국어)",
-  "warnings": ["특징 태그 배열 (예: 나트륨 주의, 우수 고단백)"]
-}`;
-
-            const payload = {
-                model: "gemini-1.5-flash",
-                contents: [
-                    {
-                        role: "user",
-                        parts: [
-                            { text: "이 급식 사진의 메뉴 구성과 칼로리, 영양성분을 분석해 주세요." },
-                            {
-                                inlineData: {
-                                    mimeType: currentImageMimeType,
-                                    data: currentImageBase64
-                                }
-                            }
-                        ]
-                    }
-                ],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
-            };
-
-            let parsedResult = null;
-            let errorMessage = null;
-
-            try {
-                document.getElementById('loadingProgressStep').innerText = "Vercel API (/api/generate) 연동 중...";
-                document.getElementById('loadingProgressBar').style.width = "60%";
-
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) {
-                        parsedResult = cleanAndParseJson(textResult);
-                    }
-                    if (!parsedResult) {
-                        errorMessage = "AI 분석 결과를 JSON 데이터로 파싱하는데 실패했습니다.";
-                    }
-                } else {
-                    errorMessage = data.error || `API 호출 오류가 발생했습니다. (상태 코드: ${response.status})`;
-                }
-            } catch (err) {
-                console.error("API Fetch Error:", err);
-                errorMessage = "서버 통신 중 네트워크 오류가 발생했습니다. Vercel 환경변수(GEMINI_API_KEY) 설정을 확인해주세요.";
-            }
-
-            document.getElementById('scanningEffect').classList.add('hidden');
-
-            if (parsedResult) {
-                renderAnalysisResult(parsedResult);
-                saveToHistory(parsedResult);
-                showToast("AI 급식 영양 분석이 성공적으로 완료되었습니다!");
-            } else {
-                setViewState('empty');
-                showToast(errorMessage || "AI 분석 도중 오류가 발생했습니다.");
-            }
-        }
-
-        function renderAnalysisResult(data) {
 <!-- ... existing code -->
