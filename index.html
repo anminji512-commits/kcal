@@ -539,7 +539,6 @@
         };
 
         const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config) ? JSON.parse(__firebase_config) : userProvidedFirebaseConfig;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nutri-ai-app';
 
         let db, auth;
         let isFirebaseInitialized = false;
@@ -556,23 +555,28 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                // 익명 로그인 시도 (Firebase 콘솔에서 익명 로그인이 꺼져있어도 Firestore 동작 시도)
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (authErr) {
+                    console.warn("Firebase Auth 로그인 건너뜀 (익명 인증 미활성화 등):", authErr.message);
                 }
 
                 isFirebaseInitialized = true;
                 subscribeFeedbacks();
             } catch (err) {
-                console.error("Firebase Auth/Init Error:", err);
+                console.error("Firebase Init Error:", err);
                 renderFeedbackError("Firebase 연결 중 오류가 발생했습니다: " + err.message);
             }
         }
 
         function subscribeFeedbacks() {
             if (!db) return;
-            const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
+            const publicColRef = collection(db, 'user_feedbacks');
 
             onSnapshot(publicColRef, (snapshot) => {
                 const items = [];
@@ -584,7 +588,11 @@
                 renderFeedbackList(items);
             }, (error) => {
                 console.error("Firestore onSnapshot error:", error);
-                renderFeedbackError("의견 목록을 불러오지 못했습니다.");
+                if (error.code === 'permission-denied') {
+                    renderFeedbackError("Firestore 접근 권한이 없습니다. Firebase 콘솔의 Firestore 규칙(Rules)을 확인해 주세요.");
+                } else {
+                    renderFeedbackError("의견 목록을 불러오지 못했습니다.");
+                }
             });
         }
 
@@ -615,7 +623,7 @@
         function renderFeedbackError(msg) {
             const listEl = document.getElementById('feedbackList');
             if (listEl) {
-                listEl.innerHTML = `<div class="text-center py-6 text-red-400 text-xs">${msg}</div>`;
+                listEl.innerHTML = `<div class="text-center py-6 text-red-400 text-xs font-semibold">${msg}</div>`;
             }
         }
 
@@ -652,7 +660,7 @@
                 btnSubmit.disabled = true;
                 btnSubmit.innerText = "등록 중...";
 
-                const publicColRef = collection(db, 'artifacts', appId, 'public', 'data', 'user_feedbacks');
+                const publicColRef = collection(db, 'user_feedbacks');
                 await addDoc(publicColRef, {
                     author,
                     content,
@@ -664,7 +672,11 @@
                 if (window.showToast) window.showToast("의견이 성공적으로 등록되었습니다!");
             } catch (err) {
                 console.error("Firestore addDoc error:", err);
-                if (window.showToast) window.showToast("의견 등록 실패: " + err.message, "fa-triangle-exclamation");
+                if (err.code === 'permission-denied') {
+                    if (window.showToast) window.showToast("Firestore 쓰기 권한이 없습니다. 규칙(Rules)을 확인해주세요.", "fa-triangle-exclamation");
+                } else {
+                    if (window.showToast) window.showToast("의견 등록 실패: " + err.message, "fa-triangle-exclamation");
+                }
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane text-emerald-400"></i> <span>의견 등록하기</span>`;
